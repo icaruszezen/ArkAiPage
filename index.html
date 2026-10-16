@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="zh-CN" data-theme="light">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light dark" />
+    <title>ArkAI｜企业大模型服务、AI Agent 智能体与 AI 视觉解决方案</title>
+    <meta
+      name="description"
+      content="ArkAI 为企业提供 AI 大模型服务、AI Agent（智能体）设计与 AI 视觉解决方案，支持私有化部署，覆盖需求诊断、原型验证、交付部署到运维迭代的全流程。"
+    />
+    <link rel="canonical" href="https://arkai.vip/" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="ArkAI" />
+    <meta property="og:locale" content="zh_CN" />
+    <meta property="og:url" content="https://arkai.vip/" />
+    <meta
+      property="og:title"
+      content="ArkAI｜企业大模型服务、AI Agent 智能体与 AI 视觉解决方案"
+    />
+    <meta
+      property="og:description"
+      content="AI 大模型服务、AI Agent 设计、AI 视觉解决方案：把 AI 做成生产力。"
+    />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <!--
+      先定好亮暗主题再画页面，避免首屏闪一下亮色：
+      读用户上次的选择（组件库的 useTheme 存在 ef-theme 里），没有就跟随系统
+    -->
+    <script>
+      (function () {
+        var d = document.documentElement,
+          m = false;
+        try {
+          var t = localStorage.getItem("ef-theme");
+          m =
+            t === "dark" ||
+            ((t === null || t === "system") &&
+              matchMedia("(prefers-color-scheme: dark)").matches);
+        } catch (e) {}
+        d.dataset.theme = m ? "dark" : "light";
+      })();
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <noscript>
+      <p style="padding: 1.5rem">
+        ArkAI 为企业提供 AI 大模型服务、AI Agent 设计与 AI 视觉解决方案。请开启
+        JavaScript 浏览完整页面。
+      </p>
+    </noscript>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

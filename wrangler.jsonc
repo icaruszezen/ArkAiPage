@@ -12,8 +12,12 @@
       "enabled": true
     }
   },
+  // 部署前先用 Vite 把站点构建到 dist/，wrangler deploy / dev 都会先跑这一步
+  "build": {
+    "command": "npm run build"
+  },
   "assets": {
-    "directory": "./public"
+    "directory": "./dist"
   },
   "routes": [
     {

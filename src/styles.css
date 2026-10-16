@@ -1,0 +1,100 @@
+/*
+ * 站点样式入口：组件库的样式（Tailwind + 令牌 + 母题工具类）+ 三款开源字体。
+ * 颜色一律用令牌，亮暗两个主题不用各写一套。
+ */
+@import "@endfield-ui/react/tailwind.css";
+
+/* 页面自己用到的工具类 */
+@source "./";
+
+/*
+ * 令牌只声明字体栈，不负责加载。把三款开源的替代字体打进站点，
+ * 不走外面的字体服务；中文回退到系统黑体。
+ */
+@import "@fontsource-variable/archivo/wdth.css";
+@import "@fontsource-variable/outfit/index.css";
+@import "@fontsource-variable/space-grotesk/index.css";
+
+/* fontsource 的可变字体叫"某某 Variable"，排在令牌原来的字体名前面 */
+@theme {
+  /* 各版块内容区的最大宽度（max-w-page），超宽屏上放宽一档，见下面 */
+  --container-page: 80rem;
+  --font-display:
+    "Archivo Variable", "Archivo", "Montserrat", "HarmonyOS Sans SC", sans-serif;
+  --font-latin:
+    "Outfit Variable", "Outfit", "Urbanist", "HarmonyOS Sans SC", sans-serif;
+  --font-tech:
+    "Space Grotesk Variable", "Space Grotesk", "HarmonyOS Sans SC", sans-serif;
+}
+
+/*
+ * 出现左侧导航轨的宽度：能悬停的设备从 1024px 起（轨收成图标），
+ * 触屏从 1280px 起（触屏上轨一直带着文字，占 224px，太早出现会把内容挤窄）。
+ * 和 App 里的 railQuery 是同一条，改一处要改两处。
+ */
+@custom-variant rail {
+  @media (width >= 64rem) and (hover: hover) and (pointer: fine) {
+    @slot;
+  }
+  @media (width >= 80rem) {
+    @slot;
+  }
+}
+
+@layer base {
+  :root {
+    @media (width >= 96rem) {
+      --container-page: 96rem;
+    }
+  }
+
+  html {
+    /* 锚点跳转平滑一点；系统开了"减少动态效果"时组件库会把它改回 auto */
+    scroll-behavior: smooth;
+    /* 窄屏的顶栏吸在上面（56px），锚点跳过去不被它压住 */
+    scroll-padding-top: 3.5rem;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  /* 有导航轨时没有顶栏 */
+  @media (width >= 64rem) and (hover: hover) and (pointer: fine),
+    (width >= 80rem) {
+    html {
+      scroll-padding-top: 0;
+    }
+  }
+
+  /* 从菜单跳到某个版块时焦点落在它的标题上：标题本身不画焦点框 */
+  :is(h1, h2)[tabindex="-1"]:focus {
+    outline: none;
+  }
+
+  body {
+    font-family: var(--font-sans);
+    font-size: var(--text-base);
+    line-height: var(--text-base--line-height);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  ::selection {
+    background-color: var(--ef-surface-inverse);
+    color: var(--ef-ink-inverse);
+  }
+}
+
+/*
+ * 打印：版块标题和括号标题的入场靠滚进视口时触发，打印时不会触发，直接给终态。
+ * 只管版块标题里的元素，不碰本来就该藏着的东西（比如回到顶部）。
+ */
+@media print {
+  section header .opacity-0,
+  :is(h1, h2, h3, h4, h5, h6) > span.opacity-0 {
+    opacity: 1 !important;
+  }
+  section header .-translate-x-full {
+    translate: none !important;
+  }
+  section header .-rotate-45 {
+    rotate: none !important;
+  }
+}
