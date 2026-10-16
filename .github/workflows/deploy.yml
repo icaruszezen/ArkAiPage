@@ -1,0 +1,20 @@
+name: Deploy Worker
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    name: Deploy
+    timeout-minutes: 60
+    permissions:
+      contents: read
+    steps:
+      - name: Publish to Cloudflare
+        env:
+          DEPLOY_HOOK_URL: ${{ secrets.CLOUDFLARE_DEPLOY_HOOK_URL }}
+        run: curl --fail-with-body --silent --show-error --request POST "$DEPLOY_HOOK_URL"
