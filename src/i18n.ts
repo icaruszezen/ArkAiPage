@@ -36,20 +36,35 @@ function applyToDocument() {
 }
 applyToDocument();
 
+/*
+ * 链接上带着旧的 ?lang 时改成当前语言，刷新后不会又切回去。
+ * 页内跳转会留下几条历史记录：后退到更早的一条时，那条地址上还是旧的 ?lang，也要改
+ */
+function syncUrl() {
+  try {
+    const url = new URL(window.location.href);
+    if (
+      url.searchParams.has("lang") &&
+      url.searchParams.get("lang") !== current
+    ) {
+      url.searchParams.set("lang", current);
+      window.history.replaceState(window.history.state, "", url);
+    }
+  } catch {
+    // 改不了地址就算了
+  }
+}
+window.addEventListener("popstate", syncUrl);
+
 export function setLang(next: Lang) {
   if (next === current) return;
   current = next;
   try {
     window.localStorage.setItem(KEY, next);
-    // 链接上带着旧的 ?lang 时一起改掉，刷新后不会又切回去
-    const url = new URL(window.location.href);
-    if (url.searchParams.has("lang")) {
-      url.searchParams.set("lang", next);
-      window.history.replaceState(window.history.state, "", url);
-    }
   } catch {
     // 存不下就只在这次打开里生效
   }
+  syncUrl();
   applyToDocument();
   for (const listener of listeners) listener();
 }

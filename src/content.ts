@@ -378,14 +378,14 @@ const en: Copy = {
     actionsLabel: "Get started",
     explore: "Explore solutions",
     contact: "Talk to us",
-    dockLabel: "Business lines",
+    dockLabel: "Our services",
   },
 
   solutions: {
     title: "What we build",
-    meta: (count: number) => `// SOLUTIONS · ${count} BUSINESS LINES`,
+    meta: (count: number) => `// SOLUTIONS · ${count} SERVICE AREAS`,
     intro: "AI solutions for businesses, currently in three areas.",
-    tabsLabel: "Business lines",
+    tabsLabel: "Our services",
     deliveryName: "Delivery",
     scenariosName: "Typical uses",
     capabilitiesHeading: "What we do",
@@ -407,7 +407,7 @@ const en: Copy = {
           "RAG knowledge bases and enterprise search",
           "API gateway and usage cost control",
         ],
-        delivery: "Private / Hybrid cloud / API",
+        delivery: "On-premises / Hybrid cloud / API",
         scenarios: "Customer service, knowledge Q&A, content generation",
       },
       {
@@ -453,7 +453,7 @@ const en: Copy = {
     title: "How we run AI projects",
     meta: (count: number) => `// APPROACH · ${count} PRINCIPLES`,
     intro:
-      "When AI projects fail, it's rarely because the model isn't strong enough. It's because nobody pinned down what to solve, how to measure it, or who looks after it once it's live. These four principles hold on every project we take on.",
+      "When AI projects fail, it's rarely because the model isn't strong enough. It's because nobody pinned down what to solve, how to measure it, or who looks after it once it's live. These four principles apply to every project we take on.",
     principles: [
       {
         latin: "Value First",
@@ -481,7 +481,7 @@ const en: Copy = {
   cases: {
     title: "Where AI fits",
     meta: (count: number) => `// USE CASES · ${count} COMMON SCENARIOS`,
-    intro: "Common scenarios, and what each business line can do in them.",
+    intro: "Common scenarios, and which of our services fit each one.",
     listLabel: "Use cases",
     galleryLabel: "Use case illustrations",
     slideTitle: (tag: string, title: string) => `${tag} · ${title}`,
@@ -500,7 +500,7 @@ const en: Copy = {
       },
       {
         tag: "Service",
-        title: "Customer service assistant",
+        title: "Customer service and knowledge base",
         solutions: ["llm"],
         text: "Answer customer questions from product documentation and service history, and hand off to a person with the full context when needed.",
       },
@@ -529,7 +529,7 @@ const en: Copy = {
       },
       {
         title: "Prototype",
-        text: "Test quality and cost with a small prototype before deciding to roll out.",
+        text: "Test quality and cost with a small prototype, then decide whether to roll it out.",
       },
       {
         title: "Delivery",

@@ -99,6 +99,8 @@ export function App() {
   // 顶栏放不下的工具挪进全屏菜单：不到 640px 先挪主题切换，不到 360px 语言切换也挪走
   const roomy = useMediaQuery("(min-width: 40rem)");
   const narrow = useMediaQuery("(max-width: 22.4375rem)");
+  // 收窄的导航轨在矮屏上（常见的 1366×657 笔记本视口以下）放不下竖排的咨询按钮
+  const short = useMediaQuery("(max-height: 41.25rem)");
   const [menuOpen, setMenuOpen] = useState(false);
   const [solution, setSolution] = useState<SolutionKey>("llm");
   const [need, setNeed] = useState<Need | null>(null);
@@ -177,7 +179,14 @@ export function App() {
         className="hidden rail:flex"
         brand={brand}
         tools={tools}
-        action={<NavAction href="#contact">{t.ui.consult}</NavAction>}
+        // 收窄的图标轨上竖排：用短的说法；屏幕矮就不放，导航里的"联系我们"去的是同一处
+        action={
+          canHover && short ? undefined : (
+            <NavAction href="#contact">
+              {canHover ? t.ui.consultShort : t.ui.consult}
+            </NavAction>
+          )
+        }
       >
         {sectionIds.map((id) => (
           <SideRailItem

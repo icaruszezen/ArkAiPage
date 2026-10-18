@@ -147,10 +147,10 @@ export function Solutions({
         >
           <TabList ref={listRef} aria-label={solutions.tabsLabel}>
             {solutions.items.map((item) => (
-              // 手机上用短名，三个页签才放得下；完整的名字在下面的标题里
-              <Tab key={item.key} value={item.key} className="max-sm:px-5">
-                <span className="sm:hidden">{item.short}</span>
-                <span className="hidden sm:inline">{item.title}</span>
+              // 窄屏上用短名，三个页签才放得下（英文全名到 768px 才排得开）；完整的名字在下面的标题里
+              <Tab key={item.key} value={item.key} className="max-md:px-5">
+                <span className="md:hidden">{item.short}</span>
+                <span className="hidden md:inline">{item.title}</span>
               </Tab>
             ))}
           </TabList>
