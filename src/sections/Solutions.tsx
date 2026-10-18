@@ -16,13 +16,8 @@ import {
 import { useEffect, useRef } from "react";
 import { IsoArt, type Shape } from "../art/iso.tsx";
 import { agentArt, llmArt, visionArt } from "../art/scenes.ts";
-import {
-  moreSolutions,
-  solutions,
-  type Need,
-  type Solution,
-  type SolutionKey,
-} from "../content.ts";
+import type { Need, Solution, SolutionKey } from "../content.ts";
+import { useCopy } from "../i18n.ts";
 
 const art: Record<SolutionKey, Shape[]> = {
   llm: llmArt,
@@ -41,25 +36,37 @@ function SolutionDetail({
   item: Solution;
   onConsult: (key: Need) => void;
 }) {
+  const { solutions } = useCopy();
+  const count = String(solutions.items.length).padStart(2, "0");
   return (
     <div className="grid gap-x-12 gap-y-10 pt-10 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)]">
       <div className="flex min-w-0 flex-col gap-6">
         <div className="flex flex-col gap-3">
           <p className="font-tech text-xs text-ink-secondary">
-            {`${item.code} / ${String(solutions.length).padStart(2, "0")}　${item.latin.toUpperCase()}`}
+            {`${item.code} / ${count}`}
+            {item.latin && `　${item.latin.toUpperCase()}`}
           </p>
           <BracketTitle className="text-[clamp(1.75rem,9.5vw,2.5rem)] text-balance sm:text-4xl lg:text-[clamp(2.5rem,4.8vw,3.25rem)]">
             {item.title}
           </BracketTitle>
         </div>
         <div className="flex flex-wrap gap-2">
-          <TagPair name="交付形式" value={item.delivery} className={pairFit} />
-          <TagPair name="典型场景" value={item.scenarios} className={pairFit} />
+          <TagPair
+            name={solutions.deliveryName}
+            value={item.delivery}
+            className={pairFit}
+          />
+          <TagPair
+            name={solutions.scenariosName}
+            value={item.scenarios}
+            className={pairFit}
+          />
         </div>
         <p className="max-w-prose text-lg leading-relaxed">{item.summary}</p>
         <div>
           <h4 className="font-tech text-xs text-ink-secondary">
-            <span aria-hidden="true">{"// "}</span>能做什么
+            <span aria-hidden="true">{"// "}</span>
+            {solutions.capabilitiesHeading}
           </h4>
           <ol className="mt-3 border-b border-line">
             {item.capabilities.map((capability, index) => (
@@ -77,7 +84,7 @@ function SolutionDetail({
         </div>
         <div>
           <Button size="lg" href="#contact" onClick={() => onConsult(item.key)}>
-            咨询这个方向
+            {solutions.consult}
           </Button>
         </div>
       </div>
@@ -102,6 +109,7 @@ export function Solutions({
   onValueChange: (key: SolutionKey) => void;
   onConsult: (key: Need) => void;
 }) {
+  const { solutions } = useCopy();
   const listRef = useRef<HTMLDivElement>(null);
 
   // 页签一行放不下时会横向滚动：从首屏停靠坞选了一条业务线，把它的页签滚进来
@@ -119,19 +127,17 @@ export function Solutions({
   }, [value]);
 
   return (
-    <section id="solutions" aria-label="解决方案" className="bg-surface">
+    <section id="solutions" aria-label={solutions.title} className="bg-surface">
       <div className="mx-auto w-full max-w-page px-4 py-24 sm:px-6 lg:px-10">
         <div className="flex flex-wrap items-end justify-between gap-x-10 gap-y-6">
           <SectionTitle
             latin="Solutions"
-            meta={`// 解决方案　共 ${solutions.length} 条业务线`}
+            meta={solutions.meta(solutions.items.length)}
             className="min-w-0"
           >
-            解决方案
+            {solutions.title}
           </SectionTitle>
-          <p className="max-w-md text-ink-secondary">
-            面向企业的 AI 解决方案，目前覆盖下面三个方向。
-          </p>
+          <p className="max-w-md text-ink-secondary">{solutions.intro}</p>
         </div>
 
         <Tabs
@@ -139,8 +145,8 @@ export function Solutions({
           onValueChange={(next) => onValueChange(next as SolutionKey)}
           className="mt-12"
         >
-          <TabList ref={listRef} aria-label="业务方向">
-            {solutions.map((item) => (
+          <TabList ref={listRef} aria-label={solutions.tabsLabel}>
+            {solutions.items.map((item) => (
               // 手机上用短名，三个页签才放得下；完整的名字在下面的标题里
               <Tab key={item.key} value={item.key} className="max-sm:px-5">
                 <span className="sm:hidden">{item.short}</span>
@@ -148,7 +154,7 @@ export function Solutions({
               </Tab>
             ))}
           </TabList>
-          {solutions.map((item) => (
+          {solutions.items.map((item) => (
             <TabPanel
               key={item.key}
               value={item.key}
@@ -160,13 +166,13 @@ export function Solutions({
         </Tabs>
 
         <div className="mt-16 flex flex-wrap items-center justify-between gap-x-8 gap-y-4 border-t border-line pt-6">
-          <p className="max-w-2xl text-ink-secondary">{moreSolutions}</p>
+          <p className="max-w-2xl text-ink-secondary">{solutions.more}</p>
           <Button
             variant="text"
             href="#contact"
             onClick={() => onConsult("other")}
           >
-            聊聊你的需求
+            {solutions.moreAction}
           </Button>
         </div>
       </div>

@@ -5,7 +5,8 @@
 import { Button, ButtonGroup, GhostText } from "@endfield-ui/react";
 import { IsoArt } from "../art/iso.tsx";
 import { heroStack, heroStackBare } from "../art/scenes.ts";
-import { hero, solutions, type SolutionKey } from "../content.ts";
+import type { SolutionKey } from "../content.ts";
+import { useCopy } from "../i18n.ts";
 
 /* 首屏的几行字用纯 CSS 的入场，不等脚本量位置；按钮只淡入，不位移 */
 const enter = "animate-shift-in [--shift-x:calc(var(--motion-shift-lg)*-1)]";
@@ -15,6 +16,7 @@ export function Hero({
 }: {
   onPickSolution: (key: SolutionKey) => void;
 }) {
+  const { hero, solutions } = useCopy();
   return (
     <section
       id="home"
@@ -40,7 +42,7 @@ export function Hero({
           <p className={`font-tech text-xs text-ink-secondary ${enter}`}>
             {hero.meta}
           </p>
-          {/* 字号跟着这一栏的宽度走："做成生产力"始终排在一行里 */}
+          {/* 字号跟着这一栏的宽度走：第二行（"做成生产力"）始终排在一行里 */}
           <h1
             id="home-title"
             className={`text-4xl leading-[1.1] font-bold @sm:text-5xl xl:@lg:text-6xl ${enter} [animation-delay:100ms]`}
@@ -78,27 +80,27 @@ export function Hero({
 
         <ButtonGroup
           align="start"
-          aria-label="开始了解"
+          aria-label={hero.actionsLabel}
           className="animate-fade-in [animation-delay:300ms] max-sm:flex-col max-sm:items-stretch lg:col-start-1 lg:row-start-2 lg:self-start"
         >
           <Button size="lg" href="#solutions">
-            了解解决方案
+            {hero.explore}
           </Button>
           <Button variant="action" size="lg" href="#contact">
-            预约咨询
+            {hero.contact}
           </Button>
         </ButtonGroup>
       </div>
 
       {/* 停靠坞：三条业务线的入口，宽屏时贴在首屏右下角 */}
       <nav
-        aria-label="业务方向"
+        aria-label={hero.dockLabel}
         // 和页面相反的一条：亮色主题下是深色带，暗色主题下是浅色带
         data-theme="inverse"
         className="relative bg-surface text-ink lg:ml-auto lg:w-[min(56rem,max(66%,40rem))]"
       >
         <ul className="grid sm:grid-cols-3">
-          {solutions.map((item) => (
+          {solutions.items.map((item) => (
             <li
               key={item.key}
               className="min-w-0 border-line not-last:border-b sm:not-last:border-r sm:not-last:border-b-0"
@@ -113,9 +115,11 @@ export function Hero({
                 </span>
                 <span className="flex min-w-0 flex-col">
                   <span className="font-medium text-pretty">{item.title}</span>
-                  <span className="truncate font-latin text-xs text-ink-secondary uppercase">
-                    {item.latin}
-                  </span>
+                  {item.latin && (
+                    <span className="truncate font-latin text-xs text-ink-secondary uppercase">
+                      {item.latin}
+                    </span>
+                  )}
                 </span>
                 <span
                   aria-hidden="true"

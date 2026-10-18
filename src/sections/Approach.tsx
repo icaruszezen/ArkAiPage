@@ -6,16 +6,17 @@ import { SectionTitle, TickRing } from "@endfield-ui/react";
 import { IsoArt } from "../art/iso.tsx";
 import { PointCloud } from "../art/PointCloud.tsx";
 import { bandArt } from "../art/scenes.ts";
-import { principles } from "../content.ts";
+import { useCopy } from "../i18n.ts";
 
 export function Approach() {
+  const { approach } = useCopy();
   return (
     <section
       id="approach"
       data-theme="dark"
       className="bg-surface-sunken text-ink"
     >
-      {/* 色带是装饰：读屏和标题大纲里只留下面的中文标题 */}
+      {/* 色带是装饰：读屏和标题大纲里只留下面的版块标题 */}
       <SectionTitle
         variant="band"
         aria-hidden="true"
@@ -35,17 +36,14 @@ export function Approach() {
           <div className="flex flex-col gap-6">
             <SectionTitle
               latin="Approach"
-              meta={`// 方法　${principles.length} 条原则`}
+              meta={approach.meta(approach.principles.length)}
             >
-              我们怎么做 AI 项目
+              {approach.title}
             </SectionTitle>
-            <p className="max-w-prose text-ink-secondary">
-              AI
-              项目做不成，多半不是模型不够强，而是没想清楚要解决什么、怎么衡量、上线之后谁来管。这四条是我们每个项目都守着的做法。
-            </p>
+            <p className="max-w-prose text-ink-secondary">{approach.intro}</p>
           </div>
           <ol className="grid gap-x-10 gap-y-8 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
-            {principles.map((item, index) => (
+            {approach.principles.map((item, index) => (
               <li
                 key={item.title}
                 className="flex gap-4 border-t border-line pt-5"

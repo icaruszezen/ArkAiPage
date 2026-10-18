@@ -17,12 +17,13 @@ import {
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { BrandMark } from "./Brand.tsx";
 import {
-  sections,
+  sectionIds,
   type Need,
   type SectionId,
   type SolutionKey,
 } from "./content.ts";
 import { useActiveSection, useMediaQuery } from "./hooks.ts";
+import { setLang, useCopy, useLang } from "./i18n.ts";
 import {
   ApproachIcon,
   CasesIcon,
@@ -52,8 +53,6 @@ const icons: Record<SectionId, ReactNode> = {
   contact: <MailIcon />,
 };
 
-const sectionIds = sections.map((section) => section.id);
-
 /*
  * 出现左侧导航轨的宽度：能悬停的设备从 1024px 起，触屏从 1280px 起
  * （触屏上轨一直带着文字，占 224px）。和 styles.css 里的 rail 变体是同一条
@@ -63,10 +62,11 @@ const railQuery =
 
 function ThemeToggle() {
   const { resolvedTheme, setTheme } = useTheme();
+  const { ui } = useCopy();
   const dark = resolvedTheme === "dark";
   return (
     <IconButton
-      aria-label={dark ? "切换到亮色" : "切换到暗色"}
+      aria-label={dark ? ui.toLight : ui.toDark}
       onClick={() => setTheme(dark ? "light" : "dark")}
     >
       <ContrastIcon />
@@ -74,12 +74,30 @@ function ThemeToggle() {
   );
 }
 
+/* 中英切换：钮上写的是要切过去的那种语言，名字也用那种语言念 */
+function LangToggle() {
+  const lang = useLang();
+  const { ui } = useCopy();
+  return (
+    <IconButton
+      lang={ui.switchLang.lang}
+      aria-label={ui.switchLang.name}
+      onClick={() => setLang(lang === "en" ? "zh" : "en")}
+      className="font-tech text-sm font-medium"
+    >
+      {ui.switchLang.label}
+    </IconButton>
+  );
+}
+
 export function App() {
+  const t = useCopy();
   const active = useActiveSection(sectionIds);
   const wide = useMediaQuery(railQuery);
   // 能悬停的设备上导航轨收窄成只有图标（悬停时浮出文字），触屏上一直带着文字
   const canHover = useMediaQuery("(hover: hover) and (pointer: fine)");
-  // 不到 360px 宽时顶栏放不下主题切换，把它挪进全屏菜单
+  // 顶栏放不下的工具挪进全屏菜单：不到 640px 先挪主题切换，不到 360px 语言切换也挪走
+  const roomy = useMediaQuery("(min-width: 40rem)");
   const narrow = useMediaQuery("(max-width: 22.4375rem)");
   const [menuOpen, setMenuOpen] = useState(false);
   const [solution, setSolution] = useState<SolutionKey>("llm");
@@ -128,11 +146,18 @@ export function App() {
   const brand = (
     <a
       href="#home"
-      aria-label="ArkAI 首页"
+      aria-label={t.ui.homeLink}
       className="inline-flex focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
     >
       <BrandMark compact={canHover} />
     </a>
+  );
+
+  const tools = (
+    <>
+      <LangToggle />
+      <ThemeToggle />
+    </>
   );
 
   const consult = (key: Need) => setNeed(key);
@@ -143,25 +168,25 @@ export function App() {
         href="#main"
         className="sr-only focus-visible:not-sr-only focus-visible:fixed focus-visible:top-2 focus-visible:left-2 focus-visible:z-(--z-toast) focus-visible:bg-surface-inverse focus-visible:px-3 focus-visible:py-2 focus-visible:text-sm focus-visible:text-ink-inverse"
       >
-        跳到正文
+        {t.ui.skip}
       </a>
 
       <SideRail
-        aria-label="主导航"
+        aria-label={t.ui.mainNav}
         collapsed={canHover}
         className="hidden rail:flex"
         brand={brand}
-        tools={<ThemeToggle />}
-        action={<NavAction href="#contact">预约咨询</NavAction>}
+        tools={tools}
+        action={<NavAction href="#contact">{t.ui.consult}</NavAction>}
       >
-        {sections.map((section) => (
+        {sectionIds.map((id) => (
           <SideRailItem
-            key={section.id}
-            icon={icons[section.id]}
-            href={`#${section.id}`}
-            current={active === section.id}
+            key={id}
+            icon={icons[id]}
+            href={`#${id}`}
+            current={active === id}
           >
-            {section.label}
+            {t.nav[id]}
           </SideRailItem>
         ))}
       </SideRail>
@@ -172,24 +197,26 @@ export function App() {
           brand={
             <a
               href="#home"
-              aria-label="ArkAI 首页"
+              aria-label={t.ui.homeLink}
               className="inline-flex focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
             >
               <BrandMark />
             </a>
           }
-          tools={narrow ? undefined : <ThemeToggle />}
-          action={<NavAction href="#contact">预约咨询</NavAction>}
+          tools={narrow ? undefined : roomy ? tools : <LangToggle />}
+          action={<NavAction href="#contact">{t.ui.consultShort}</NavAction>}
           menu={
             <NavMenu
               open={menuOpen}
               onOpenChange={setMenuOpen}
-              title="ArkAI 导航"
+              title={t.ui.menuTitle}
+              navLabel={t.ui.mainNav}
+              closeLabel={t.ui.closeMenu}
               brand={<BrandMark />}
               ghost="ARKAI"
-              tools={<ThemeToggle />}
+              tools={tools}
               trigger={
-                <IconButton aria-label="打开菜单">
+                <IconButton aria-label={t.ui.openMenu}>
                   <Menu />
                 </IconButton>
               }
@@ -202,21 +229,21 @@ export function App() {
                     setMenuOpen(false);
                   }}
                 >
-                  预约咨询
+                  {t.ui.consult}
                 </NavAction>
               }
             >
-              {sections.map((section) => (
+              {sectionIds.map((id) => (
                 <NavMenuItem
-                  key={section.id}
-                  icon={icons[section.id]}
-                  href={`#${section.id}`}
-                  current={active === section.id}
+                  key={id}
+                  icon={icons[id]}
+                  href={`#${id}`}
+                  current={active === id}
                   onClick={() => {
-                    menuTarget.current = section.id;
+                    menuTarget.current = id;
                   }}
                 >
-                  {section.label}
+                  {t.nav[id]}
                 </NavMenuItem>
               ))}
             </NavMenu>
@@ -239,7 +266,7 @@ export function App() {
         <Footer />
       </div>
 
-      <BackToTop />
+      <BackToTop aria-label={t.ui.backToTop} />
     </div>
   );
 }

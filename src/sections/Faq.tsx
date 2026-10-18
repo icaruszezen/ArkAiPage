@@ -8,25 +8,24 @@ import {
   Button,
   SectionTitle,
 } from "@endfield-ui/react";
-import { faqs } from "../content.ts";
+import { useCopy } from "../i18n.ts";
 
 export function Faq() {
+  const { faq } = useCopy();
   return (
     <section id="faq" className="bg-surface">
       <div className="mx-auto grid w-full max-w-page gap-x-16 gap-y-10 px-4 py-24 sm:px-6 lg:grid-cols-[minmax(0,0.75fr)_minmax(0,1.6fr)] lg:px-10">
         <div className="flex min-w-0 flex-col items-start gap-6">
-          <SectionTitle latin="FAQ" meta={`// 常见问题　${faqs.length} 条`}>
-            常见问题
+          <SectionTitle latin="FAQ" meta={faq.meta(faq.items.length)}>
+            {faq.title}
           </SectionTitle>
-          <p className="text-ink-secondary">
-            没找到你想问的？直接告诉我们你的情况。
-          </p>
+          <p className="text-ink-secondary">{faq.intro}</p>
           <Button variant="text" href="#contact">
-            联系我们
+            {faq.action}
           </Button>
         </div>
         <Accordion searchable defaultValue={["q0"]} className="min-w-0">
-          {faqs.map((item, index) => (
+          {faq.items.map((item, index) => (
             <AccordionItem
               key={item.question}
               value={`q${index}`}

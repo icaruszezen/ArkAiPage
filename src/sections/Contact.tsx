@@ -1,6 +1,6 @@
 /*
- * 联系我们：左缘一条通高的黄色竖带（官网"公告"的排法），左栏是联系方式，右栏是咨询表单。
- * 联系方式还是占位；表单还没有接后台，填之前和提交后都如实告诉访客。
+ * 联系我们：左缘一条通高的黄色竖带（官网"公告"的排法），左栏是咨询邮箱，右栏是咨询表单。
+ * 表单不经过后台：提交时打开访客自己的邮件应用，收件人、主题和正文都已经填好。
  */
 import {
   Alert,
@@ -10,36 +10,17 @@ import {
   SectionTitle,
   Segment,
   SegmentedControl,
-  Tag,
   Textarea,
 } from "@endfield-ui/react";
 import { useRef, useState, type FormEvent, type ReactNode } from "react";
 import { IsoArt } from "../art/iso.tsx";
 import { bandArt } from "../art/scenes.ts";
-import { contact, needs, type Need } from "../content.ts";
-import { ClockIcon, MailIcon, PhoneIcon, PinIcon } from "../icons.tsx";
+import { supportEmail, type Need } from "../content.ts";
+import { useCopy } from "../i18n.ts";
+import { MailIcon } from "../icons.tsx";
 
-type Errors = Partial<Record<"name" | "reach" | "need", string>>;
-
-const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-const PHONE = /^\+?[\d\s()-]{7,20}$/;
-/* 只有符号没有数字的也不算电话 */
-const isPhone = (value: string) =>
-  PHONE.test(value) && value.replace(/\D/g, "").length >= 7;
-
-/**
- * 表单接上后台了没有。没接上时表单顶上会先说明"提交后不会发出"；
- * 接上之后改成 true，并在 submitLead 里发请求
- */
-const FORM_CONNECTED = false;
-
-/**
- * 把一条咨询交给后台。现在还没有接口，所以如实返回"没接通"；
- * 接上之后在这里发请求，成功返回 "sent"。
- */
-async function submitLead(_data: FormData): Promise<"sent" | "not-connected"> {
-  return "not-connected";
-}
+/* 记下哪几项有问题，不记文字：换语言时错误说明跟着换 */
+type Errors = Partial<Record<"name" | "need", true>>;
 
 /* 一行联系方式：dl 里每一组只放 dt 和 dd，图标放进 dt 里 */
 function ContactRow({
@@ -62,19 +43,17 @@ function ContactRow({
         </span>
         {label}
       </dt>
-      <dd className="mt-1 flex flex-wrap items-center gap-2 font-medium wrap-anywhere">
-        {children}
-      </dd>
+      <dd className="mt-1 font-medium wrap-anywhere">{children}</dd>
     </div>
   );
 }
 
-/* 联系方式还没定下来时，每一项旁边标一个"待补充" */
-const pending = !contact.ready && (
-  <Tag variant="outline" size="sm">
-    待补充
-  </Tag>
-);
+/* mailto 链接：正文的换行按规范写成 CRLF */
+function mailto(subject: string, body: string) {
+  const encode = (text: string) =>
+    encodeURIComponent(text.replace(/\r?\n/g, "\r\n"));
+  return `mailto:${supportEmail}?subject=${encode(subject)}&body=${encode(body)}`;
+}
 
 export function Contact({
   need,
@@ -83,10 +62,16 @@ export function Contact({
   need: Need | null;
   onNeedChange: (need: Need) => void;
 }) {
+  const { contact, solutions } = useCopy();
   const [errors, setErrors] = useState<Errors>({});
-  const [sending, setSending] = useState(false);
-  const [result, setResult] = useState<"sent" | "not-connected" | null>(null);
+  const [ready, setReady] = useState(false);
   const resultRef = useRef<HTMLDivElement>(null);
+
+  /* 咨询方向：三条业务线的短名，再加一个"其他" */
+  const needs: { value: Need; label: string }[] = [
+    ...solutions.items.map((item) => ({ value: item.key, label: item.short })),
+    { value: "other", label: contact.other },
+  ];
 
   const clear = (key: keyof Errors) =>
     setErrors((current) => {
@@ -96,29 +81,22 @@ export function Contact({
       return next;
     });
 
-  async function onSubmit(event: FormEvent<HTMLFormElement>) {
+  function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const form = event.currentTarget;
     const data = new FormData(form);
-    const name = String(data.get("name") ?? "").trim();
-    const reach = String(data.get("reach") ?? "").trim();
+    const field = (key: string) => String(data.get(key) ?? "").trim();
+    const name = field("name");
+    const needLabel = needs.find((item) => item.value === field("need"))?.label;
     const next: Errors = {};
-    if (!name) next.name = "请填写称呼，方便我们联系你。";
-    if (!reach) {
-      next.reach = "请留一个手机号或邮箱，我们才能回复你。";
-    } else if (!EMAIL.test(reach) && !isPhone(reach)) {
-      next.reach =
-        "格式不太对，请填写手机号或邮箱，例如 138 0000 0000 或 name@company.com。";
-    }
-    if (!data.get("need")) next.need = "请选一个咨询方向，不确定就选“其他”。";
+    if (!name) next.name = true;
+    if (!needLabel) next.need = true;
     setErrors(next);
-    setResult(null);
-    if (Object.keys(next).length > 0) {
+    setReady(false);
+    if (!needLabel || Object.keys(next).length > 0) {
       // 焦点移到第一个有问题的字段，读屏会读出它的错误说明。
       // 咨询方向是一组单选：有选中的就落在选中的那个上，没有就落在第一个上
-      const first = (["name", "reach", "need"] as const).find(
-        (key) => next[key],
-      );
+      const first = (["name", "need"] as const).find((key) => next[key]);
       if (first)
         form
           .querySelector<HTMLElement>(
@@ -129,19 +107,28 @@ export function Contact({
           ?.focus();
       return;
     }
-    setSending(true);
-    try {
-      setResult(await submitLead(data));
-      // 结果就在提交按钮上面：手机上也滚到能看见的地方
-      requestAnimationFrame(() =>
-        resultRef.current?.scrollIntoView({
-          block: "nearest",
-          behavior: "smooth",
-        }),
-      );
-    } finally {
-      setSending(false);
-    }
+
+    const { mail } = contact;
+    const company = field("company");
+    const message = field("message");
+    const body = [
+      `${mail.name}${mail.colon}${name}`,
+      company && `${mail.company}${mail.colon}${company}`,
+      `${mail.need}${mail.colon}${needLabel}`,
+      message && `\n${mail.message}${mail.colon.trim()}\n${message}`,
+    ]
+      .filter(Boolean)
+      .join("\n");
+    window.location.href = mailto(mail.subject(needLabel, name), body);
+
+    // 打开没打开邮件应用，页面无从知道：按钮上面如实说一句，并给出邮箱
+    setReady(true);
+    requestAnimationFrame(() =>
+      resultRef.current?.scrollIntoView({
+        block: "nearest",
+        behavior: "smooth",
+      }),
+    );
   }
 
   return (
@@ -165,28 +152,21 @@ export function Contact({
        */}
       <div className="mx-auto grid w-full max-w-page min-w-0 gap-x-16 gap-y-12 px-4 py-24 sm:px-6 md:pl-[max(1.5rem,calc(5.5rem-max(0px,(100%-var(--container-page))/2)))] lg:px-10 lg:pl-[max(2.5rem,calc(6.5rem-max(0px,(100%-var(--container-page))/2)))] xl:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
         <div className="flex min-w-0 flex-col gap-6">
-          <SectionTitle latin="Contact" meta="// 联系我们">
-            预约咨询
+          <SectionTitle latin="Contact" meta={contact.meta}>
+            {contact.title}
           </SectionTitle>
-          <p className="max-w-prose text-ink-secondary">
-            说说你的业务和想用 AI
-            解决的问题，哪怕还只是一个想法。我们会先帮你判断值不值得做、从哪一步开始。
-          </p>
+          <p className="max-w-prose text-ink-secondary">{contact.intro}</p>
           <dl className="mt-2 border-b border-line">
-            <ContactRow icon={<MailIcon size={20} />} label="邮箱">
-              {contact.email}
-              {pending}
-            </ContactRow>
-            <ContactRow icon={<PhoneIcon size={20} />} label="电话">
-              {contact.phone}
-              {pending}
-            </ContactRow>
-            <ContactRow icon={<PinIcon size={20} />} label="地址">
-              {contact.address}
-            </ContactRow>
-            <ContactRow icon={<ClockIcon size={20} />} label="工作时间">
-              {contact.hours}
-              {pending}
+            <ContactRow
+              icon={<MailIcon size={20} />}
+              label={contact.emailLabel}
+            >
+              <a
+                href={`mailto:${supportEmail}`}
+                className="underline decoration-line-strong decoration-1 underline-offset-4 transition-colors duration-(--duration-fast) hover:decoration-action focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
+              >
+                {supportEmail}
+              </a>
             </ContactRow>
           </dl>
         </div>
@@ -194,49 +174,42 @@ export function Contact({
         <form
           noValidate
           onSubmit={onSubmit}
-          aria-label="咨询表单"
+          aria-label={contact.formLabel}
           className="flex min-w-0 flex-col gap-6 sm:border sm:border-line sm:bg-surface-raised sm:p-8"
         >
           <div className="flex flex-col gap-1.5 text-sm text-ink-secondary">
-            {!FORM_CONNECTED && (
-              <p className="font-medium text-ink">
-                咨询表单暂未接通，提交后内容不会发出。
-              </p>
-            )}
+            <p>{contact.note}</p>
             {/* 每个必填的控件自己会读出"必填"，这句只给看得见记号的人 */}
             <p aria-hidden="true" className="flex items-center">
-              带
+              {contact.requiredBefore}
               <span className="mx-1.5 inline-block size-1.5 rotate-45 bg-accent-ink" />
-              的是必填项。
+              {contact.requiredAfter}
             </p>
           </div>
           <div className="grid gap-6 sm:grid-cols-2">
-            <Field label="称呼" required error={errors.name}>
+            <Field
+              label={contact.name}
+              required
+              error={errors.name && contact.errors.name}
+            >
               <Input
                 name="name"
                 autoComplete="name"
-                placeholder="例如 王先生"
+                placeholder={contact.namePlaceholder}
                 onChange={() => clear("name")}
               />
             </Field>
-            <Field label="公司或组织">
+            <Field label={contact.company}>
               <Input name="company" autoComplete="organization" />
             </Field>
           </div>
-          <Field
-            label="手机或邮箱"
-            required
-            error={errors.reach}
-            help="只用来回复这次咨询。"
-          >
-            <Input
-              name="reach"
-              autoComplete="email"
-              onChange={() => clear("reach")}
-            />
-          </Field>
           {/* 一组单选：group 让它成为 fieldset + legend */}
-          <Field label="咨询方向" required group error={errors.need}>
+          <Field
+            label={contact.need}
+            required
+            group
+            error={errors.need && contact.errors.need}
+          >
             <SegmentedControl
               name="need"
               value={need ?? ""}
@@ -257,10 +230,7 @@ export function Contact({
               ))}
             </SegmentedControl>
           </Field>
-          <Field
-            label="需求描述"
-            help="业务场景、现有数据、希望什么时候上线，写多少都可以。"
-          >
+          <Field label={contact.message} help={contact.messageHelp}>
             <Textarea name="message" rows={4} maxLength={500} showCount />
           </Field>
 
@@ -274,32 +244,15 @@ export function Contact({
             aria-atomic="true"
             className="scroll-mb-4 empty:-mt-6"
           >
-            {result === "not-connected" && (
-              <Alert role="none" tone="info" title="表单暂未开通">
-                {contact.ready ? (
-                  <>
-                    刚才填写的内容没有发出（已填的内容还在表单里），请发邮件到{" "}
-                    {contact.email} 联系我们。
-                  </>
-                ) : (
-                  "官网刚上线，咨询表单还没有接入后台，刚才填写的内容没有发出（已填的内容还在表单里）。正式的联系方式正在补充，公布后会更新在本页。"
-                )}
-              </Alert>
-            )}
-            {result === "sent" && (
-              <Alert role="none" tone="success" title="已收到">
-                我们会尽快通过你留下的方式联系你。
+            {ready && (
+              <Alert role="none" tone="info" title={contact.ready.title}>
+                {contact.ready.body}
               </Alert>
             )}
           </div>
           <div className="flex justify-end">
-            <Button
-              type="submit"
-              size="lg"
-              loading={sending}
-              loadingText="提交中"
-            >
-              提交咨询
+            <Button type="submit" size="lg">
+              {contact.submit}
             </Button>
           </div>
         </form>

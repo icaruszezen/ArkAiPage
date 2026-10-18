@@ -57,27 +57,3 @@ export const ContrastIcon = createIcon(
     <path d="M12 4a8 8 0 0 1 0 16z" fill="currentColor" stroke="none" />
   </>,
 );
-
-/** 电话 */
-export const PhoneIcon = createIcon(
-  "PhoneIcon",
-  <path d="M7 3h10v18H7zM10 18h4" />,
-);
-
-/** 地址：一枚定位针 */
-export const PinIcon = createIcon(
-  "PinIcon",
-  <>
-    <path d="M12 21s-7-6.5-7-12a7 7 0 0 1 14 0c0 5.5-7 12-7 12z" />
-    <circle cx="12" cy="9" r="2.5" />
-  </>,
-);
-
-/** 时间：表盘 */
-export const ClockIcon = createIcon(
-  "ClockIcon",
-  <>
-    <circle cx="12" cy="12" r="8" />
-    <path d="M12 7v5h4" />
-  </>,
-);

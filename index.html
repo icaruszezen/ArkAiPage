@@ -1,31 +1,36 @@
 <!doctype html>
-<html lang="zh-CN" data-theme="light">
+<html lang="en" data-theme="light">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="color-scheme" content="light dark" />
-    <title>ArkAI｜企业大模型服务、AI Agent 智能体与 AI 视觉解决方案</title>
+    <!-- 标题和摘要默认英文；页面打开后 src/i18n.ts 按访客选的语言改写 -->
+    <title>
+      ArkAI | Enterprise LLM Services, AI Agents and Computer Vision
+    </title>
     <meta
       name="description"
-      content="ArkAI 为企业提供 AI 大模型服务、AI Agent（智能体）设计与 AI 视觉解决方案，支持私有化部署，覆盖需求诊断、原型验证、交付部署到运维迭代的全流程。"
+      content="ArkAI builds AI solutions for businesses: LLM services, AI agent design and computer vision, with private deployment and support from discovery and prototyping to delivery and operations."
     />
     <link rel="canonical" href="https://arkai.vip/" />
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="ArkAI" />
-    <meta property="og:locale" content="zh_CN" />
+    <meta property="og:locale" content="en_US" />
+    <meta property="og:locale:alternate" content="zh_CN" />
     <meta property="og:url" content="https://arkai.vip/" />
     <meta
       property="og:title"
-      content="ArkAI｜企业大模型服务、AI Agent 智能体与 AI 视觉解决方案"
+      content="ArkAI | Enterprise LLM Services, AI Agents and Computer Vision"
     />
     <meta
       property="og:description"
-      content="AI 大模型服务、AI Agent 设计、AI 视觉解决方案：把 AI 做成生产力。"
+      content="LLM services, AI agent design and computer vision solutions: put AI to work."
     />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <!--
       先定好亮暗主题再画页面，避免首屏闪一下亮色：
-      读用户上次的选择（组件库的 useTheme 存在 ef-theme 里），没有就跟随系统
+      读用户上次的选择（组件库的 useTheme 存在 ef-theme 里），没有就跟随系统。
+      语言也先定好（和 src/i18n.ts 的规则一样：链接上的 ?lang 优先，其次上次的选择）
     -->
     <script>
       (function () {
@@ -37,6 +42,10 @@
             t === "dark" ||
             ((t === null || t === "system") &&
               matchMedia("(prefers-color-scheme: dark)").matches);
+          var l =
+            new URLSearchParams(location.search).get("lang") ||
+            localStorage.getItem("arkai-lang");
+          if (l === "zh") d.lang = "zh-CN";
         } catch (e) {}
         d.dataset.theme = m ? "dark" : "light";
       })();
@@ -46,6 +55,10 @@
     <div id="root"></div>
     <noscript>
       <p style="padding: 1.5rem">
+        ArkAI builds LLM services, AI agents and computer vision solutions for
+        businesses. Please enable JavaScript to view the full page.
+      </p>
+      <p lang="zh-CN" style="padding: 0 1.5rem 1.5rem">
         ArkAI 为企业提供 AI 大模型服务、AI Agent 设计与 AI 视觉解决方案。请开启
         JavaScript 浏览完整页面。
       </p>

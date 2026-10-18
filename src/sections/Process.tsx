@@ -3,9 +3,11 @@
  * 五步横排，窄了折成两列、一列。
  */
 import { GhostText, SectionTitle } from "@endfield-ui/react";
-import { steps } from "../content.ts";
+import { useCopy } from "../i18n.ts";
 
 export function Process() {
+  const { process } = useCopy();
+  const { steps } = process;
   return (
     <section id="process" className="relative bg-surface">
       {/*
@@ -28,14 +30,12 @@ export function Process() {
         <div className="flex flex-wrap items-end justify-between gap-x-10 gap-y-6">
           <SectionTitle
             latin="Process"
-            meta={`// 合作流程　共 ${steps.length} 步`}
+            meta={process.meta(steps.length)}
             className="min-w-0"
           >
-            合作流程
+            {process.title}
           </SectionTitle>
-          <p className="max-w-md text-ink-secondary">
-            每一步结束都有能检查的产出，看过结果再决定下一步要不要做、怎么做。
-          </p>
+          <p className="max-w-md text-ink-secondary">{process.intro}</p>
         </div>
 
         <ol className="mt-14 grid gap-x-8 gap-y-10 sm:grid-cols-2 lg:grid-cols-5">
