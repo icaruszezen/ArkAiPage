@@ -11,6 +11,7 @@ import { useCopy } from "../i18n.ts";
 import {
   fadeIn,
   hidden,
+  midPage,
   shiftIn,
   shiftInColumn,
   stage,
@@ -62,7 +63,8 @@ export function Approach() {
   const { approach } = useCopy();
   const [bandRef, band] = useReveal<HTMLElement>();
   const [headRef, head] = useReveal();
-  const [ringRef, ring] = useReveal();
+  // 圆环比视口的一半还高：等它露出一大截再转正、点云再淡入
+  const [ringRef, ring] = useReveal(midPage);
   return (
     <section
       id="approach"

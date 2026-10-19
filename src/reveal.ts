@@ -22,16 +22,23 @@ const SETTLE_MS = 800;
  * phase 交给 stage() 换成类名。
  * - 减少动态效果：一开始就是 settled，没有等待态；
  * - 没有 IntersectionObserver：useInView 当场给 true，播完就 settled；
- * - 键盘把焦点送进还在等的一组：当场 settled，不让焦点落在透明的东西上；
+ * - 键盘把焦点送进还在等或正在播的一组：当场 settled，不让焦点落在透明的东西上；
  * - disabled：不播（切过来的页签面板）。
  * 一旦 settled 就不再变回去。
+ * rootMargin、threshold 原样交给 useInView，默认是一露头就播（同 SectionTitle）。
  */
 export function useReveal<T extends Element = HTMLDivElement>({
   disabled = false,
-}: { disabled?: boolean } = {}) {
+  rootMargin,
+  threshold,
+}: { disabled?: boolean; rootMargin?: string; threshold?: number } = {}) {
   const reduced = useReducedMotion();
   const [settled, setSettled] = useState(disabled || reduced);
-  const [ref, inView] = useInView<T>({ disabled: settled });
+  const [ref, inView] = useInView<T>({
+    disabled: settled,
+    rootMargin,
+    threshold,
+  });
 
   useEffect(() => {
     if ((disabled || reduced) && !settled) setSettled(true);
@@ -39,11 +46,11 @@ export function useReveal<T extends Element = HTMLDivElement>({
 
   useEffect(() => {
     const node = ref.current;
-    if (!node || settled || inView) return;
+    if (!node || settled) return;
     const finish = () => setSettled(true);
     node.addEventListener("focusin", finish);
     return () => node.removeEventListener("focusin", finish);
-  }, [ref, settled, inView]);
+  }, [ref, settled]);
 
   useEffect(() => {
     if (!inView || settled) return;
@@ -67,6 +74,14 @@ export const stage = (phase: Phase, from: string, play: string) =>
  * 会把目标自己的裁切算进去，裁成零宽的目标可能永远算不上"进了视口"，就一直藏着
  */
 export const hidden = "staged:opacity-0";
+
+/*
+ * —— 版块中段的大图 ——
+ * 主图在一个高的容器里居中：一露头就播的话，图还在屏幕下面就播完了。
+ * 这几组等容器顶边过了视口高度的 60% 再播。只给版块中段的用：
+ * 挨着页面底部的（页脚、联系区）可能永远到不了这条线，会一直藏着
+ */
+export const midPage = { rootMargin: "0px 0px -40% 0px" } as const;
 
 /*
  * —— 播的时候 ——

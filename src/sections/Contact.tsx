@@ -76,6 +76,8 @@ export function Contact({
   const [ready, setReady] = useState(false);
   const resultRef = useRef<HTMLDivElement>(null);
   const [bandRef, band] = useReveal();
+  // 竖排的字在通高色带的最下面：自己触发，整个露出来了再归位
+  const [wordRef, word] = useReveal<HTMLSpanElement>({ threshold: 0.9 });
   const [headRef, head] = useReveal();
   const [formRef, formPhase] = useReveal<HTMLFormElement>();
 
@@ -146,7 +148,7 @@ export function Contact({
   return (
     <section id="contact" className="relative bg-surface">
       {/* 左缘的黄色竖带：贴着舞台左边（导航轨旁边），顶上一块线稿，底下竖排的版块名 */}
-      {/* 和"方法"的色带同一种入场：从左（导航轨那一边）擦入，竖排的字晚 200ms 归位 */}
+      {/* 和"方法"的色带同一种入场：从左（导航轨那一边）擦入；底下竖排的字露出来了再归位 */}
       <div
         ref={bandRef}
         aria-hidden="true"
@@ -159,9 +161,10 @@ export function Contact({
           <IsoArt shapes={bandArt} padding={3} className="w-10" />
         </div>
         <span
+          ref={wordRef}
           className={cn(
             "font-latin text-2xl font-medium tracking-label uppercase [writing-mode:vertical-rl]",
-            stage(band, "", shiftIn[200]),
+            stage(word, hidden, shiftIn[0]),
           )}
         >
           Contact

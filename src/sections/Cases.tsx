@@ -19,6 +19,7 @@ import { useCopy, useLang } from "../i18n.ts";
 import {
   fadeIn,
   hidden,
+  midPage,
   shiftIn,
   stage,
   useLightUp,
@@ -34,8 +35,11 @@ export function Cases() {
   const [index, setIndex] = useState(0);
   const [headRef, head] = useReveal();
   // 轮播的根节点既是入场的触发，也是下面改读屏文字用的那个节点
-  const [carouselRef, media] = useReveal<HTMLElement>();
+  const [carouselRef, media] = useReveal<HTMLElement>(midPage);
   const slideLight = useLightUp(media);
+  // 只点亮开始播时眼前的那一张：播到一半换了一张，新的那张不再从头闪
+  const [litSlide, setLitSlide] = useState<number | null>(null);
+  if (media === "playing" && litSlide === null) setLitSlide(index);
   const [listRef, list] = useReveal<HTMLUListElement>();
 
   /* 涉及的业务线用和表单一样的短名，比如"大模型 + Agent" */
@@ -148,7 +152,9 @@ export function Cases() {
             // 用位置当 key：换语言时幻灯片不重新挂载，上面改过的读屏文字不会被冲掉
             <CarouselSlide
               key={position}
-              className={position === index ? slideLight : undefined}
+              className={
+                position === (litSlide ?? index) ? slideLight : undefined
+              }
               title={
                 <>
                   <span className="sr-only">

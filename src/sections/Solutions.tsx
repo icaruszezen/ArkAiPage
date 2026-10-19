@@ -22,6 +22,7 @@ import { useCopy } from "../i18n.ts";
 import {
   fadeIn,
   hidden,
+  midPage,
   shiftIn,
   stage,
   useLightUp,
@@ -61,7 +62,9 @@ function SolutionDetail({
   const [introRef, intro] = useReveal({ disabled: still });
   const [capsRef, caps] = useReveal({ disabled: still });
   const [frameRef, frame] = useReveal({ disabled: still });
-  const artLight = useLightUp(frame);
+  // 线稿在取景框正中，框比它高出一截：单独触发，看得见的时候再点亮
+  const [artRef, artPhase] = useReveal({ disabled: still, ...midPage });
+  const artLight = useLightUp(artPhase);
   useEffect(() => {
     if (intro === "playing") onPlay();
   }, [intro, onPlay]);
@@ -158,10 +161,9 @@ function SolutionDetail({
           stage(frame, "staged:[&>.corner-brackets]:opacity-0", ""),
         )}
       >
-        <IsoArt
-          shapes={art[item.key]}
-          className={cn("w-[62%] text-ink", artLight)}
-        />
+        <div ref={artRef} className={cn("w-[62%]", artLight)}>
+          <IsoArt shapes={art[item.key]} className="w-full text-ink" />
+        </div>
       </Viewfinder>
     </div>
   );
