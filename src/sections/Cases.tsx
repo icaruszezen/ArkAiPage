@@ -15,7 +15,7 @@ import { useLayoutEffect, useState } from "react";
 import { IsoArt, type Shape } from "../art/iso.tsx";
 import { chartArt, docsArt, shelfArt, visionArt } from "../art/scenes.ts";
 import type { SolutionKey } from "../content.ts";
-import { useCopy, useLang } from "../i18n.ts";
+import { useCopy } from "../i18n.ts";
 import {
   fadeIn,
   hidden,
@@ -29,7 +29,6 @@ import {
 const art: Shape[][] = [visionArt, docsArt, shelfArt, chartArt];
 
 export function Cases() {
-  const lang = useLang();
   const { cases, solutions, ui } = useCopy();
   const { carousel } = ui;
   const [index, setIndex] = useState(0);
@@ -108,13 +107,24 @@ export function Cases() {
               selected={position === index}
               onClick={() => setIndex(position)}
               start={
-                // 定宽：类别名长短不一，标题才能对齐在同一条竖线上
-                <Tag
-                  variant="muted"
-                  size="sm"
-                  className={`justify-center ${lang === "en" ? "w-18" : "w-15"}`}
-                >
-                  {item.tag}
+                /*
+                 * 每个标签里叠着全部类别名，只露出自己那一个：宽度都按最长的那个算，
+                 * 后面的标题对齐在同一条竖线上，换哪种语言都一样
+                 */
+                <Tag variant="muted" size="sm" className="justify-center">
+                  <span className="grid justify-items-center">
+                    {cases.items.map((other, slot) => (
+                      <span
+                        key={slot}
+                        className={cn(
+                          "[grid-area:1/1]",
+                          slot !== position && "invisible",
+                        )}
+                      >
+                        {other.tag}
+                      </span>
+                    ))}
+                  </span>
                 </Tag>
               }
               description={lineNames(item.solutions)}
@@ -159,7 +169,7 @@ export function Cases() {
                 <>
                   <span className="sr-only">
                     {carousel.place(position + 1, cases.items.length)}
-                    {lang === "en" ? ": " : "："}
+                    {ui.colon}
                   </span>
                   {cases.slideTitle(item.tag, item.title)}
                 </>

@@ -4,6 +4,9 @@
  */
 import {
   BackToTop,
+  DropdownMenu,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
   IconButton,
   Menu,
   NavAction,
@@ -13,6 +16,8 @@ import {
   SideRailItem,
   TopBar,
   useTheme,
+  type DropdownMenuAlign,
+  type DropdownMenuSide,
 } from "@endfield-ui/react";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { BrandMark } from "./Brand.tsx";
@@ -23,12 +28,19 @@ import {
   type SolutionKey,
 } from "./content.ts";
 import { useActiveSection, useMediaQuery } from "./hooks.ts";
-import { setLang, useCopy, useLang } from "./i18n.ts";
+import {
+  languages,
+  matchLang,
+  setLang,
+  useCopy,
+  useLang,
+} from "./i18n.ts";
 import {
   ApproachIcon,
   CasesIcon,
   ContrastIcon,
   FaqIcon,
+  GlobeIcon,
   HomeIcon,
   MailIcon,
   ModulesIcon,
@@ -74,19 +86,51 @@ function ThemeToggle() {
   );
 }
 
-/* 中英切换：钮上写的是要切过去的那种语言，名字也用那种语言念 */
-function LangToggle() {
+/*
+ * 语言菜单：钮上是一个地球，点开是各种语言的名字。
+ * 名字用那种语言自己写，也按那种语言念（lang）：不认得当前这种语言的人也找得到自己的。
+ * side / align 是面板出现在哪边：导航轨在左缘，往右开；顶栏在上面，往下开
+ */
+function LanguageMenu({
+  side,
+  align,
+}: {
+  side: DropdownMenuSide;
+  align: DropdownMenuAlign;
+}) {
   const lang = useLang();
   const { ui } = useCopy();
+  const name = languages.find((item) => item.code === lang)?.name;
   return (
-    <IconButton
-      lang={ui.switchLang.lang}
-      aria-label={ui.switchLang.name}
-      onClick={() => setLang(lang === "en" ? "zh" : "en")}
-      className="font-tech text-sm font-medium"
+    <DropdownMenu
+      variant="strong"
+      side={side}
+      align={align}
+      trigger={
+        <IconButton aria-label={`${ui.language}${ui.colon}${name}`}>
+          <GlobeIcon />
+        </IconButton>
+      }
     >
-      {ui.switchLang.label}
-    </IconButton>
+      <DropdownMenuRadioGroup
+        label={ui.language}
+        value={lang}
+        onValueChange={(value) => {
+          const next = matchLang(value);
+          if (next) setLang(next);
+        }}
+      >
+        {languages.map((item) => (
+          <DropdownMenuRadioItem
+            key={item.code}
+            value={item.code}
+            lang={item.code}
+          >
+            {item.name}
+          </DropdownMenuRadioItem>
+        ))}
+      </DropdownMenuRadioGroup>
+    </DropdownMenu>
   );
 }
 
@@ -96,7 +140,7 @@ export function App() {
   const wide = useMediaQuery(railQuery);
   // 能悬停的设备上导航轨收窄成只有图标（悬停时浮出文字），触屏上一直带着文字
   const canHover = useMediaQuery("(hover: hover) and (pointer: fine)");
-  // 顶栏放不下的工具挪进全屏菜单：不到 640px 先挪主题切换，不到 360px 语言切换也挪走
+  // 顶栏放不下的工具挪进全屏菜单：不到 640px 先挪主题切换，不到 360px 语言菜单也挪走
   const roomy = useMediaQuery("(min-width: 40rem)");
   const narrow = useMediaQuery("(max-width: 22.4375rem)");
   // 收窄的导航轨在矮屏上（常见的 1366×657 笔记本视口以下）放不下竖排的咨询按钮
@@ -155,12 +199,22 @@ export function App() {
     </a>
   );
 
-  const tools = (
+  // 导航轨在左缘：菜单往右开，和按钮的下沿对齐（工具组在轨的下半截）
+  const railTools = (
     <>
-      <LangToggle />
+      <LanguageMenu side="right" align="end" />
       <ThemeToggle />
     </>
   );
+  // 全屏菜单的工具带在栏目下面：往下开，左对齐
+  const menuTools = (
+    <>
+      <LanguageMenu side="bottom" align="start" />
+      <ThemeToggle />
+    </>
+  );
+  // 顶栏在右上角：往下开，右对齐
+  const barLanguage = <LanguageMenu side="bottom" align="end" />;
 
   const consult = (key: Need) => setNeed(key);
 
@@ -178,7 +232,7 @@ export function App() {
         collapsed={canHover}
         className="hidden rail:flex"
         brand={brand}
-        tools={tools}
+        tools={railTools}
         // 收窄的图标轨上竖排：用短的说法；屏幕矮就不放，导航里的"联系我们"去的是同一处
         action={
           canHover && short ? undefined : (
@@ -212,7 +266,16 @@ export function App() {
               <BrandMark />
             </a>
           }
-          tools={narrow ? undefined : roomy ? tools : <LangToggle />}
+          tools={
+            narrow ? undefined : roomy ? (
+              <>
+                {barLanguage}
+                <ThemeToggle />
+              </>
+            ) : (
+              barLanguage
+            )
+          }
           action={<NavAction href="#contact">{t.ui.consultShort}</NavAction>}
           menu={
             <NavMenu
@@ -223,7 +286,7 @@ export function App() {
               closeLabel={t.ui.closeMenu}
               brand={<BrandMark />}
               ghost="ARKAI"
-              tools={tools}
+              tools={menuTools}
               trigger={
                 <IconButton aria-label={t.ui.openMenu}>
                   <Menu />

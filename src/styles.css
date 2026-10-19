@@ -9,22 +9,26 @@
 
 /*
  * 令牌只声明字体栈，不负责加载。把三款开源的替代字体打进站点，
- * 不走外面的字体服务；中文回退到系统黑体。
+ * 不走外面的字体服务；中日韩文字回退到系统黑体。
  */
 @import "@fontsource-variable/archivo/wdth.css";
 @import "@fontsource-variable/outfit/index.css";
 @import "@fontsource-variable/space-grotesk/index.css";
 
-/* fontsource 的可变字体叫"某某 Variable"，排在令牌原来的字体名前面 */
+/*
+ * fontsource 的可变字体叫"某某 Variable"，排在令牌原来的字体名前面。
+ * 四个字体栈里的中日韩部分都是 --font-cjk：简繁中文、日文、韩文的汉字字形不一样，
+ * 按页面语言换成那种语言的系统黑体（见下面的 :lang 规则）
+ */
 @theme {
   /* 各版块内容区的最大宽度（max-w-page），超宽屏上放宽一档，见下面 */
   --container-page: 80rem;
+  --font-sans: var(--font-cjk), system-ui, sans-serif;
   --font-display:
-    "Archivo Variable", "Archivo", "Montserrat", "HarmonyOS Sans SC", sans-serif;
+    "Archivo Variable", "Archivo", "Montserrat", var(--font-cjk), sans-serif;
   --font-latin:
-    "Outfit Variable", "Outfit", "Urbanist", "HarmonyOS Sans SC", sans-serif;
-  --font-tech:
-    "Space Grotesk Variable", "Space Grotesk", "HarmonyOS Sans SC", sans-serif;
+    "Outfit Variable", "Outfit", "Urbanist", var(--font-cjk), sans-serif;
+  --font-tech: "Space Grotesk Variable", "Space Grotesk", var(--font-cjk), sans-serif;
 }
 
 /*
@@ -72,6 +76,59 @@
     html {
       scroll-padding-top: 0;
     }
+  }
+
+  /*
+   * 中日韩字体：默认（英文、简体中文）是令牌原来的那组简体黑体；
+   * 繁体中文、日文、韩文各换一组，Mac / iOS、Windows、安卓和 Linux 上的系统黑体依次往后排
+   */
+  :root {
+    --font-cjk:
+      "HarmonyOS Sans SC", "Noto Sans SC", "Source Han Sans SC", "PingFang SC",
+      "Microsoft YaHei", "Noto Sans CJK SC";
+  }
+  :lang(zh-Hant) {
+    --font-cjk:
+      "PingFang TC", "Noto Sans TC", "Source Han Sans TC", "Microsoft JhengHei",
+      "Noto Sans CJK TC";
+  }
+  :lang(ja) {
+    --font-cjk:
+      "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Noto Sans JP",
+      "Source Han Sans JP", "Yu Gothic UI", "Yu Gothic", "Meiryo",
+      "Noto Sans CJK JP";
+  }
+  :lang(ko) {
+    --font-cjk:
+      "Apple SD Gothic Neo", "Noto Sans KR", "Source Han Sans KR",
+      "Malgun Gothic", "Noto Sans CJK KR";
+  }
+  /*
+   * 字体栈在声明它的元素上就拼好了：页面里夹着的别种语言（语言菜单里各语言的名字）
+   * 要在它自己身上再拼一遍，才用得上它那种语言的字体
+   */
+  [lang]:not(:root) {
+    --font-sans: var(--font-cjk), system-ui, sans-serif;
+    --font-display:
+      "Archivo Variable", "Archivo", "Montserrat", var(--font-cjk), sans-serif;
+    --font-latin:
+      "Outfit Variable", "Outfit", "Urbanist", var(--font-cjk), sans-serif;
+    --font-tech:
+      "Space Grotesk Variable", "Space Grotesk", var(--font-cjk), sans-serif;
+    font-family: var(--font-sans);
+  }
+
+  /*
+   * 韩文按词（空格）断行，不在一个词中间折开；一个词比一行还长时才折。
+   * 用 break-word 不用 anywhere：后者会让弹性、网格里的格子按单个字缩窄
+   */
+  :lang(ko) {
+    word-break: keep-all;
+    overflow-wrap: break-word;
+  }
+  /* 日文标题按词组断行（支持的浏览器才有，其他的照常） */
+  :lang(ja) :is(h1, h2, h3) {
+    word-break: auto-phrase;
   }
 
   /* 从菜单跳到某个版块时焦点落在它的标题上：标题本身不画焦点框 */

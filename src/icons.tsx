@@ -57,3 +57,13 @@ export const ContrastIcon = createIcon(
     <path d="M12 4a8 8 0 0 1 0 16z" fill="currentColor" stroke="none" />
   </>,
 );
+
+/** 语言：一个地球，一条经线、一条赤道 */
+export const GlobeIcon = createIcon(
+  "GlobeIcon",
+  <>
+    <circle cx="12" cy="12" r="8" />
+    <ellipse cx="12" cy="12" rx="3.5" ry="8" />
+    <path d="M4 12h16" />
+  </>,
+);

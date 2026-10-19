@@ -71,7 +71,7 @@ export function Contact({
   need: Need | null;
   onNeedChange: (need: Need) => void;
 }) {
-  const { contact, solutions } = useCopy();
+  const { contact, solutions, ui } = useCopy();
   const [errors, setErrors] = useState<Errors>({});
   const [ready, setReady] = useState(false);
   const resultRef = useRef<HTMLDivElement>(null);
@@ -123,13 +123,14 @@ export function Contact({
     }
 
     const { mail } = contact;
+    const { colon } = ui;
     const company = field("company");
     const message = field("message");
     const body = [
-      `${mail.name}${mail.colon}${name}`,
-      company && `${mail.company}${mail.colon}${company}`,
-      `${mail.need}${mail.colon}${needLabel}`,
-      message && `\n${mail.message}${mail.colon.trim()}\n${message}`,
+      `${mail.name}${colon}${name}`,
+      company && `${mail.company}${colon}${company}`,
+      `${mail.need}${colon}${needLabel}`,
+      message && `\n${mail.message}${colon.trim()}\n${message}`,
     ]
       .filter(Boolean)
       .join("\n");

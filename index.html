@@ -12,11 +12,13 @@
       name="description"
       content="ArkAI builds AI solutions for businesses: LLM services, AI agent design and computer vision, with private deployment and support from discovery and prototyping to delivery and operations."
     />
-    <link rel="canonical" href="https://arkai.vip/" />
+    <!--
+      规范链接由 src/i18n.ts 按当前语言写上（各语言的页面各是各的地址）；
+      各语言页面的 hreflang 和 og:locale:alternate 由 vite.config.ts 照语言表生成
+    -->
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="ArkAI" />
     <meta property="og:locale" content="en_US" />
-    <meta property="og:locale:alternate" content="zh_CN" />
     <meta property="og:url" content="https://arkai.vip/" />
     <meta
       property="og:title"
@@ -30,7 +32,7 @@
     <!--
       先定好亮暗主题再画页面，避免首屏闪一下亮色：
       读用户上次的选择（组件库的 useTheme 存在 ef-theme 里），没有就跟随系统。
-      语言也先定好（和 src/i18n.ts 的规则一样：链接上的 ?lang 优先，其次上次的选择）
+      语言不用在这里定：页面是脚本画出来的，src/i18n.ts 在画第一帧之前就把 lang 写好了
     -->
     <script>
       (function () {
@@ -42,10 +44,6 @@
             t === "dark" ||
             ((t === null || t === "system") &&
               matchMedia("(prefers-color-scheme: dark)").matches);
-          var l =
-            new URLSearchParams(location.search).get("lang") ||
-            localStorage.getItem("arkai-lang");
-          if (l === "zh") d.lang = "zh-CN";
         } catch (e) {}
         d.dataset.theme = m ? "dark" : "light";
       })();
