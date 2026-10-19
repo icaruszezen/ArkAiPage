@@ -79,10 +79,12 @@
   }
 
   /*
-   * 中日韩字体：默认（英文、简体中文）是令牌原来的那组简体黑体；
-   * 繁体中文、日文、韩文各换一组，Mac / iOS、Windows、安卓和 Linux 上的系统黑体依次往后排
+   * 中日韩字体：默认（英文、简体中文页面，以及别种页面里标了 zh-Hans 的字，比如语言菜单里的"简体中文"）
+   * 是令牌原来的那组简体黑体；繁体中文、日文、韩文各换一组，
+   * Mac / iOS、Windows、安卓和 Linux 上的系统黑体依次往后排。后面三条要排在这一条后面，页面本身才换得过来
    */
-  :root {
+  :root,
+  :lang(zh-Hans) {
     --font-cjk:
       "HarmonyOS Sans SC", "Noto Sans SC", "Source Han Sans SC", "PingFang SC",
       "Microsoft YaHei", "Noto Sans CJK SC";
@@ -129,6 +131,27 @@
   /* 日文标题按词组断行（支持的浏览器才有，其他的照常） */
   :lang(ja) :is(h1, h2, h3) {
     word-break: auto-phrase;
+  }
+
+  /*
+   * 下拉菜单开着时盖住整页、挡住别处点击的那层透明底（Base UI 的 InternalBackdrop）没有层级，
+   * 导航轨、顶栏、全屏菜单都压在它上面，点它们会穿过去：把它提到浮层那一层。
+   * 组件库给菜单的弹层加上层级以后可以删掉
+   */
+  [data-base-ui-inert][role="presentation"] {
+    z-index: var(--z-overlay);
+  }
+
+  /*
+   * 顶栏吸在上面，所以页面留了 3.5rem 的滚动内边距（上面的 html 规则）；可焦点落在顶栏自己的按钮上时，
+   * 浏览器会以为它被顶栏挡住，把页面往上滚。焦点在顶栏里时不留这一截，
+   * 从顶栏的链接跳到某个版块时改由版块自己让开顶栏
+   */
+  html:has([data-top-bar] :focus-visible) {
+    scroll-padding-top: 0;
+  }
+  html:has([data-top-bar] :focus-visible) section[id] {
+    scroll-margin-top: 3.5rem;
   }
 
   /* 从菜单跳到某个版块时焦点落在它的标题上：标题本身不画焦点框 */

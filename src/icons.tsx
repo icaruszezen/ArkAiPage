@@ -58,12 +58,11 @@ export const ContrastIcon = createIcon(
   </>,
 );
 
-/** 语言：一个地球，一条经线、一条赤道 */
+/** 语言：一个地球，两段圆弧拼成的经线和一条赤道（圆弧分开画，两极不起尖） */
 export const GlobeIcon = createIcon(
   "GlobeIcon",
   <>
     <circle cx="12" cy="12" r="8" />
-    <ellipse cx="12" cy="12" rx="3.5" ry="8" />
-    <path d="M4 12h16" />
+    <path d="M12 4a10 10 0 0 0 0 16M12 4a10 10 0 0 1 0 16M4 12h16" />
   </>,
 );

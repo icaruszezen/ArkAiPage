@@ -101,11 +101,18 @@ function LanguageMenu({
   const lang = useLang();
   const { ui } = useCopy();
   const name = languages.find((item) => item.code === lang)?.name;
+  // 导航轨和顶栏一直都在页面里，只是按宽度藏起一个：换了布局（平板转屏、拉窗口），
+  // 开着的面板会失去按钮、悬在左上角，所以跟全屏菜单一样关掉
+  const [open, setOpen] = useState(false);
+  const wide = useMediaQuery(railQuery);
+  useEffect(() => setOpen(false), [wide]);
   return (
     <DropdownMenu
       variant="strong"
       side={side}
       align={align}
+      open={open}
+      onOpenChange={setOpen}
       trigger={
         <IconButton aria-label={`${ui.language}${ui.colon}${name}`}>
           <GlobeIcon />
@@ -256,6 +263,7 @@ export function App() {
 
       <div className="flex min-w-0 flex-1 flex-col">
         <TopBar
+          data-top-bar
           className="rail:hidden"
           brand={
             <a

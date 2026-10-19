@@ -237,8 +237,9 @@ export function Solutions({
             className={stage(tabs, hidden, fadeIn[200])}
           >
             {solutions.items.map((item) => (
-              // 窄屏上用短名，三个页签才放得下（英文全名到 768px 才排得开）；完整的名字在下面的标题里
-              <Tab key={item.key} value={item.key} className="max-md:px-5">
+              // 窄屏上用短名，三个页签才放得下（全名到 768px 才排得开）；完整的名字在下面的标题里。
+              // 平板宽度上内边距也收一点：日文的全名长，768px 时差一点放不下
+              <Tab key={item.key} value={item.key} className="max-lg:px-5">
                 <span className="md:hidden">{item.short}</span>
                 <span className="hidden md:inline">{item.title}</span>
               </Tab>
