@@ -3,7 +3,7 @@
  * 离观者近的点大而实，远的点小而淡，读起来是一个立体的球。
  * 静止的图，不做持续的转动；颜色跟着文字色走。
  */
-import { useMemo } from "react";
+import { memo, useMemo } from "react";
 
 type PointCloudProps = {
   /** 点的个数 */
@@ -16,7 +16,11 @@ const GOLDEN = Math.PI * (3 - Math.sqrt(5));
 const TILT_X = 0.42;
 const TILT_Z = -0.3;
 
-export function PointCloud({ count = 420, className }: PointCloudProps) {
+/* 420 个点：所在的版块换入场状态时不跟着重画，只有自己的 className 变了才画 */
+export const PointCloud = memo(function PointCloud({
+  count = 420,
+  className,
+}: PointCloudProps) {
   const dots = useMemo(() => {
     const list: { x: number; y: number; r: number; o: number }[] = [];
     for (let index = 0; index < count; index++) {
@@ -67,4 +71,4 @@ export function PointCloud({ count = 420, className }: PointCloudProps) {
       ))}
     </svg>
   );
-}
+});

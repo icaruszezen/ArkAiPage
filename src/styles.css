@@ -41,6 +41,16 @@
   }
 }
 
+/*
+ * 滚进视口的入场还没播时的起点（src/reveal.ts）：只在屏幕上、没开"减少动态效果"时才藏。
+ * 打印、减少动态效果时没有等待态，内容直接是终态
+ */
+@custom-variant staged {
+  @media screen and (prefers-reduced-motion: no-preference) {
+    @slot;
+  }
+}
+
 @layer base {
   :root {
     @media (width >= 96rem) {
@@ -87,6 +97,12 @@
  * 只管版块标题里的元素，不碰本来就该藏着的东西（比如回到顶部）。
  */
 @media print {
+  /* 正在播的入场（不到一秒）直接给终态：用到的关键帧终点都是元素本来的样子 */
+  *,
+  ::before,
+  ::after {
+    animation: none !important;
+  }
   section header .opacity-0,
   :is(h1, h2, h3, h4, h5, h6) > span.opacity-0 {
     opacity: 1 !important;

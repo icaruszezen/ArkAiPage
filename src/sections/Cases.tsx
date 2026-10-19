@@ -5,16 +5,25 @@
 import {
   Carousel,
   CarouselSlide,
+  cn,
   List,
   ListRow,
   SectionTitle,
   Tag,
 } from "@endfield-ui/react";
-import { useLayoutEffect, useRef, useState } from "react";
+import { useLayoutEffect, useState } from "react";
 import { IsoArt, type Shape } from "../art/iso.tsx";
 import { chartArt, docsArt, shelfArt, visionArt } from "../art/scenes.ts";
 import type { SolutionKey } from "../content.ts";
 import { useCopy, useLang } from "../i18n.ts";
+import {
+  fadeIn,
+  hidden,
+  shiftIn,
+  stage,
+  useLightUp,
+  useReveal,
+} from "../reveal.ts";
 
 const art: Shape[][] = [visionArt, docsArt, shelfArt, chartArt];
 
@@ -23,7 +32,11 @@ export function Cases() {
   const { cases, solutions, ui } = useCopy();
   const { carousel } = ui;
   const [index, setIndex] = useState(0);
-  const carouselRef = useRef<HTMLElement>(null);
+  const [headRef, head] = useReveal();
+  // 轮播的根节点既是入场的触发，也是下面改读屏文字用的那个节点
+  const [carouselRef, media] = useReveal<HTMLElement>();
+  const slideLight = useLightUp(media);
+  const [listRef, list] = useReveal<HTMLUListElement>();
 
   /* 涉及的业务线用和表单一样的短名，比如"大模型 + Agent" */
   const lineNames = (keys: SolutionKey[]) =>
@@ -59,14 +72,32 @@ export function Cases() {
       className="bg-surface-sunken text-ink"
     >
       <div className="mx-auto grid w-full max-w-page gap-x-12 gap-y-8 px-4 pb-24 [grid-template-areas:'head'_'media'_'list'] sm:px-6 lg:grid-cols-[minmax(0,1.6fr)_minmax(17rem,0.8fr)] lg:grid-rows-[auto_1fr] lg:[grid-template-areas:'media_head'_'media_list'] lg:px-10">
-        <div className="flex min-w-0 flex-col gap-6 [grid-area:head]">
+        <div
+          ref={headRef}
+          className="flex min-w-0 flex-col gap-6 [grid-area:head]"
+        >
           <SectionTitle latin="Use Cases" meta={cases.meta(cases.items.length)}>
             {cases.title}
           </SectionTitle>
-          <p className="text-ink-secondary">{cases.intro}</p>
+          <p
+            className={cn(
+              "text-ink-secondary",
+              stage(head, hidden, shiftIn[300]),
+            )}
+          >
+            {cases.intro}
+          </p>
         </div>
 
-        <List aria-label={cases.listLabel} className="min-w-0 [grid-area:list]">
+        {/* 一行一个按钮：整块淡入，不逐行、不位移 */}
+        <List
+          ref={listRef}
+          aria-label={cases.listLabel}
+          className={cn(
+            "min-w-0 [grid-area:list]",
+            stage(list, hidden, fadeIn[200]),
+          )}
+        >
           {cases.items.map((item, position) => (
             <ListRow
               key={position}
@@ -100,12 +131,24 @@ export function Cases() {
           indicator
           index={index}
           onIndexChange={setIndex}
-          className="min-w-0 [grid-area:media]"
+          /*
+           * 屏幕一直在（轨道的底色、翻页钮不动），眼前这一张点亮；
+           * 下面的说明（最后一个子元素）晚 300ms 从左 8px 归位
+           */
+          className={cn(
+            "min-w-0 [grid-area:media]",
+            stage(
+              media,
+              "staged:[&>:last-child]:opacity-0",
+              "[&>:last-child]:animate-shift-in [&>:last-child]:[--shift-x:calc(var(--motion-shift-lg)*-1)] [&>:last-child]:[animation-delay:300ms]",
+            ),
+          )}
         >
           {cases.items.map((item, position) => (
             // 用位置当 key：换语言时幻灯片不重新挂载，上面改过的读屏文字不会被冲掉
             <CarouselSlide
               key={position}
+              className={position === index ? slideLight : undefined}
               title={
                 <>
                   <span className="sr-only">

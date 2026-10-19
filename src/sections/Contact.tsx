@@ -5,6 +5,7 @@
 import {
   Alert,
   Button,
+  cn,
   Field,
   Input,
   SectionTitle,
@@ -18,6 +19,14 @@ import { bandArt } from "../art/scenes.ts";
 import { supportEmail, type Need } from "../content.ts";
 import { useCopy } from "../i18n.ts";
 import { MailIcon } from "../icons.tsx";
+import {
+  fadeIn,
+  hidden,
+  shiftIn,
+  stage,
+  useReveal,
+  wipeIn,
+} from "../reveal.ts";
 
 /* 记下哪几项有问题，不记文字：换语言时错误说明跟着换 */
 type Errors = Partial<Record<"name" | "need", true>>;
@@ -66,6 +75,9 @@ export function Contact({
   const [errors, setErrors] = useState<Errors>({});
   const [ready, setReady] = useState(false);
   const resultRef = useRef<HTMLDivElement>(null);
+  const [bandRef, band] = useReveal();
+  const [headRef, head] = useReveal();
+  const [formRef, formPhase] = useReveal<HTMLFormElement>();
 
   /* 咨询方向：三条业务线的短名，再加一个"其他" */
   const needs: { value: Need; label: string }[] = [
@@ -134,14 +146,24 @@ export function Contact({
   return (
     <section id="contact" className="relative bg-surface">
       {/* 左缘的黄色竖带：贴着舞台左边（导航轨旁边），顶上一块线稿，底下竖排的版块名 */}
+      {/* 和"方法"的色带同一种入场：从左（导航轨那一边）擦入，竖排的字晚 200ms 归位 */}
       <div
+        ref={bandRef}
         aria-hidden="true"
-        className="absolute inset-y-0 left-0 hidden w-16 flex-col items-center justify-between bg-action py-8 text-on-action md:flex"
+        className={cn(
+          "absolute inset-y-0 left-0 hidden w-16 flex-col items-center justify-between bg-action py-8 text-on-action md:flex",
+          stage(band, hidden, wipeIn.base),
+        )}
       >
         <div data-theme="light" className="text-ink">
           <IsoArt shapes={bandArt} padding={3} className="w-10" />
         </div>
-        <span className="font-latin text-2xl font-medium tracking-label uppercase [writing-mode:vertical-rl]">
+        <span
+          className={cn(
+            "font-latin text-2xl font-medium tracking-label uppercase [writing-mode:vertical-rl]",
+            stage(band, "", shiftIn[200]),
+          )}
+        >
           Contact
         </span>
       </div>
@@ -151,12 +173,25 @@ export function Contact({
        * （百分比相对整个版块的宽度算，减去居中留出来的那一截）
        */}
       <div className="mx-auto grid w-full max-w-page min-w-0 gap-x-16 gap-y-12 px-4 py-24 sm:px-6 md:pl-[max(1.5rem,calc(5.5rem-max(0px,(100%-var(--container-page))/2)))] lg:px-10 lg:pl-[max(2.5rem,calc(6.5rem-max(0px,(100%-var(--container-page))/2)))] xl:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
-        <div className="flex min-w-0 flex-col gap-6">
+        <div ref={headRef} className="flex min-w-0 flex-col gap-6">
           <SectionTitle latin="Contact" meta={contact.meta}>
             {contact.title}
           </SectionTitle>
-          <p className="max-w-prose text-ink-secondary">{contact.intro}</p>
-          <dl className="mt-2 border-b border-line">
+          <p
+            className={cn(
+              "max-w-prose text-ink-secondary",
+              stage(head, hidden, shiftIn[300]),
+            )}
+          >
+            {contact.intro}
+          </p>
+          {/* 里面是邮箱链接：只淡入 */}
+          <dl
+            className={cn(
+              "mt-2 border-b border-line",
+              stage(head, hidden, fadeIn[300]),
+            )}
+          >
             <ContactRow
               icon={<MailIcon size={20} />}
               label={contact.emailLabel}
@@ -171,11 +206,16 @@ export function Contact({
           </dl>
         </div>
 
+        {/* 整张表单都是控件：整块淡入，不逐项、不位移 */}
         <form
+          ref={formRef}
           noValidate
           onSubmit={onSubmit}
           aria-label={contact.formLabel}
-          className="flex min-w-0 flex-col gap-6 sm:border sm:border-line sm:bg-surface-raised sm:p-8"
+          className={cn(
+            "flex min-w-0 flex-col gap-6 sm:border sm:border-line sm:bg-surface-raised sm:p-8",
+            stage(formPhase, hidden, fadeIn[200]),
+          )}
         >
           <div className="flex flex-col gap-1.5 text-sm text-ink-secondary">
             <p>{contact.note}</p>

@@ -2,11 +2,12 @@
  * 首屏：标题偏左，主角（三层台子的线稿）偏右并占最大的一块，宽屏上右缘被版面切掉；
  * 右下角一条深色的停靠坞，三条业务线的入口。
  */
-import { Button, ButtonGroup, GhostText } from "@endfield-ui/react";
+import { Button, ButtonGroup, cn, GhostText } from "@endfield-ui/react";
 import { IsoArt } from "../art/iso.tsx";
 import { heroStack, heroStackBare } from "../art/scenes.ts";
 import type { SolutionKey } from "../content.ts";
 import { useCopy } from "../i18n.ts";
+import { fadeIn, hidden, stage, useLightUp, useReveal } from "../reveal.ts";
 
 /* 首屏的几行字用纯 CSS 的入场，不等脚本量位置；按钮只淡入，不位移 */
 const enter = "animate-shift-in [--shift-x:calc(var(--motion-shift-lg)*-1)]";
@@ -17,6 +18,13 @@ export function Hero({
   onPickSolution: (key: SolutionKey) => void;
 }) {
   const { hero, solutions } = useCopy();
+  /*
+   * 主图和停靠坞看见了才播：宽屏上挂上就在眼前，和上面几行字同一拍；
+   * 手机上停靠坞在首屏下面，滚到了才播，不在屏幕外面播完
+   */
+  const [artRef, art] = useReveal();
+  const artLight = useLightUp(art);
+  const [dockRef, dock] = useReveal<HTMLElement>();
   return (
     <section
       id="home"
@@ -61,7 +69,14 @@ export function Hero({
         </div>
 
         {/* 主角：手机上不带标注；宽屏上按视口高度定大小，往右越出版面 */}
-        <div className="mx-auto w-full max-w-[16rem] min-w-0 sm:max-w-[30rem] lg:col-start-2 lg:row-span-2 lg:row-start-1 xl:mx-0 xl:w-[min(48vw,calc(100dvh-13rem))] xl:max-w-none xl:translate-x-[8%] xl:justify-self-end">
+        {/* 只动不透明度：宽屏上这一层自己带着 translate */}
+        <div
+          ref={artRef}
+          className={cn(
+            "mx-auto w-full max-w-[16rem] min-w-0 sm:max-w-[30rem] lg:col-start-2 lg:row-span-2 lg:row-start-1 xl:mx-0 xl:w-[min(48vw,calc(100dvh-13rem))] xl:max-w-none xl:translate-x-[8%] xl:justify-self-end",
+            artLight,
+          )}
+        >
           <IsoArt
             shapes={heroStackBare}
             className="w-full text-ink sm:hidden"
@@ -93,13 +108,18 @@ export function Hero({
       </div>
 
       {/* 停靠坞：三条业务线的入口，宽屏时贴在首屏右下角 */}
+      {/* 入场照完成横幅：色带从左擦入，里面的链接晚 200ms 淡入，不位移 */}
       <nav
+        ref={dockRef}
         aria-label={hero.dockLabel}
         // 和页面相反的一条：亮色主题下是深色带，暗色主题下是浅色带
         data-theme="inverse"
-        className="relative bg-surface text-ink lg:ml-auto lg:w-[min(56rem,max(66%,40rem))]"
+        className={cn(
+          "relative bg-surface text-ink lg:ml-auto lg:w-[min(56rem,max(66%,40rem))]",
+          stage(dock, hidden, "animate-wipe-in [animation-delay:100ms]"),
+        )}
       >
-        <ul className="grid sm:grid-cols-3">
+        <ul className={cn("grid sm:grid-cols-3", stage(dock, "", fadeIn[300]))}>
           {solutions.items.map((item) => (
             <li
               key={item.key}
